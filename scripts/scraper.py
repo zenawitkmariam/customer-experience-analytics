@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 from tqdm import tqdm
-from google_play_scraper import reviews_all, Sort
+from google_play_scraper import reviews_all,reviews, Sort
 
 # --- The Scraping Function ---
 
@@ -26,17 +26,18 @@ def scrape_bank_reviews(app_ids: dict, max_reviews_per_bank: int = 400):
         print(f"\n--- Starting scrape for {bank_name} (ID: {app_id}) ---")
         
         try:
-            # reviews_all is used to continuously fetch reviews up to the specified
-            # count (400) or until all available reviews are fetched.
-            scraped_reviews = reviews_all(
+           # FIX: Using 'reviews' function instead of 'reviews_all' to strictly respect the 'count' limit.
+            # reviews returns a tuple: (reviews_list, continuation_token)
+            result, _ = reviews(
                 app_id,
-                # Fetch reviews sorted by most helpful
                 lang='en', 
                 country='us',
                 sort=Sort.NEWEST, # Use NEWEST to get the most recent data
-                count=max_reviews_per_bank, # Specify the target review count
+                count=max_reviews_per_bank, # Specify the target review count (limit)
                 filter_score_with=None # Get reviews regardless of score
             )
+            
+            scraped_reviews = result # The actual list of reviews is the first element
             
             print(f"Successfully scraped {len(scraped_reviews)} reviews for {bank_name}.")
 
